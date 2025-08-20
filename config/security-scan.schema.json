@@ -1,0 +1,67 @@
+{
+  "description": "",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rules": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "items": {
+        "required": [
+          "id",
+          "severity",
+          "pattern",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pattern": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "exemptions": {
+      "type": "object",
+      "properties": {
+        "potential-secret": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "external-url": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+      ]
+    }
+  },
+  "required": [
+    "$schema",
+    "rules",
+    "exemptions"
+  ]
+}

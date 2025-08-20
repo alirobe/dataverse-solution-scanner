@@ -1,0 +1,71 @@
+{
+  "title": "Security Scan Settings",
+  "type": "object",
+  "properties": {
+    "environments": {
+      "type": "array",
+      "description": "List of environments with specific settings.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the environment."
+          },
+          "securityScan": {
+            "type": "object",
+            "properties": {
+              "exemptions": {
+                "type": "object",
+                "properties": {
+                  
+                  "files": {
+                    "type": "array",
+                    "description": "Files to ignore.",
+                    "items": {
+                      "type": "string",
+                      "description": "File paths",
+                      "example": [
+                        "solutions\\YOURENVIRONMENT\\ExternalBundle"
+                      ]
+                    }
+                  },
+                  "potential-secret": {
+                    "type": "array",
+                    "description": "List of regex patterns to exempt from secret detection.",
+                    "items": {
+                      "type": "string",
+                      "description": "Regex pattern.",
+                      "example": [
+                        "(?i)<IsDataSourceSecret>0</IsDataSourceSecret> (included by default)",
+                        "(?i)X-MS-APIM-Tokens.*\\$ConnectionKey (included by default)"
+                      ]
+                    }
+                  },
+                  "external-url": {
+                    "type": "array",
+                    "description": "List of URLs or domains considered safe.",
+                    "items": {
+                      "type": "string",
+                      "description": "URL or domain.",
+                      "example": [
+                        "YOURTENANT.sharepoint.com",
+                        "YOURTENANT.crmX.dynamics.com",
+                        "YOURTENANT.onmicrosoft.com",
+                        ""
+                      ]
+                    }
+                  }
+                },
+                "required": ["potential-secret", "external-url"]
+              }
+            },
+            "required": ["exemptions"]
+          }
+        },
+        "required": ["name", "securityScan"]
+      }
+    }
+  },
+  "required": ["environments"]
+}

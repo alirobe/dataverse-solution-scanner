@@ -1,0 +1,43 @@
+{
+  "$schema": "./security-scan.schema.json",
+  "filetypes": [
+    ".json",
+    ".xml",
+    ".js",
+    ".ts",
+    ".html",
+    ".htm",
+    ".css",
+    ".yml",
+    ".yaml",
+    ".txt",
+    ".xaml",
+    ".resx"
+  ],
+  "rules": [
+    {
+      "id": "external-url",
+      "severity": "Medium",
+      "pattern": "(?i)https?://[^\\s\\\"']+",
+      "description": "Detects external URLs in code"
+    },
+    {
+      "id": "potential-secret",
+      "severity": "High",
+      "pattern": "(?i)password|secret|api[-_ ]?key|token",
+      "description": "Detects potential secrets or credentials"
+    }
+  ],
+  "exemptions": {
+    "external-url": [
+      "(?i)//www.w3.org",
+      "(?i)//schema.management.azure.com",
+      "(?i)//schemas.microsoft.com"
+    ],
+    "potential-secret": [
+      "(?i)IsDataSourceSecret",
+      "PublicKeyToken",
+      "(?i)X-MS-APIM-Tokens.*\\$ConnectionKey"
+    ]
+  }
+}
