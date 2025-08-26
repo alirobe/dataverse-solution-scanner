@@ -3,6 +3,19 @@
 > **Prerequisites:**  
 > Ensure you have the [Power Platform CLI](https://learn.microsoft.com/power-platform/developer/cli/introduction) installed and have authenticated (`pac auth create`) before running the provided import script.
 
+## Creating the environments config file
+
+Create a file called `config/environments.json`. Use an IDE like VS Code to edit the file.
+
+It should contain the following.
+
+```JSON
+{
+  "$schema": "./environments.schema.json"
+}
+```
+
+Fix all validation issues suggested by the IDE until your configuration is valid. You must provide at least one environment.
 
 ## Running a backup 
 
