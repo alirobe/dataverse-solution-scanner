@@ -18,4 +18,4 @@ Run `.\security-review.ps1` to generate a basic report.
 
 Outputs are written to `output/security-scan*` as JSON and CSV log. 
 
-These **must be manually checked** for sensitive information before being sent to any AI tool, as they may contain key secrets.
+These **must be manually checked** for sensitive information before being sent to any AI tool, as they may contain keys/secrets.
