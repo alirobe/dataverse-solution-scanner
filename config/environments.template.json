@@ -1,0 +1,18 @@
+{
+  "$schema": "./environments.schema.json",
+  "environments": [
+    {
+      "name": "EnvironmentNameD",
+      "securityScan": {
+        "exemptions": {
+          "files": [""],
+          "potential-secret": [""],
+          "external-url": [
+            "(?i)//TENANT.crmX.dynamics.com",
+            "(?i)//TENANT.sharepoint.com",
+            "(?i)//graph.microsoft.com"
+          ]
+        }
+      }
+  ]
+}

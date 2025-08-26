@@ -5,19 +5,11 @@
 
 ## Creating the environments config file
 
-Create a file called `config/environments.json`. Use an IDE like VS Code to edit the file.
+Copy the `config/environments.template.json` to a file called `config/environments.json`.
 
-It should contain the following.
+Using an IDE like VS Code will help you ensure your changes are valid against the configuration requirements.
 
-```JSON
-{
-  "$schema": "./environments.schema.json"
-}
-```
-
-Fix all validation issues suggested by the IDE until your configuration is valid. You must provide at least one environment.
-
-## Running a backup 
+## Running a backup
 
 Run `backup-dataverse-environment-solutions.ps1` to refresh them.
 
