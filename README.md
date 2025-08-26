@@ -6,8 +6,6 @@
 
 ## Running a backup 
 
-Backups/exported solutions live under `solutions/`. 
-
 Run `backup-dataverse-environment-solutions.ps1` to refresh them.
 
 Backups are stored under `solutions/`.
