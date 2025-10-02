@@ -19,8 +19,8 @@ Backups are stored under `solutions/`.
 
 This repo includes an automated security scan for exported Dataverse solutions.
 
-Run `.\security-review.ps1` to generate a basic report. 
+Run `.\security-review.ps1` to generate a basic report.
 
-Outputs are written to `output/security-scan*` as JSON and CSV log. 
+Outputs are written to `output/security-scan*` as JSON and CSV log.
 
 These **must be manually checked** for sensitive information before being sent to any AI tool, as they may contain keys/secrets.

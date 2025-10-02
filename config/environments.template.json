@@ -2,7 +2,7 @@
   "$schema": "./environments.schema.json",
   "environments": [
     {
-      "name": "EnvironmentNameD",
+      "name": "EnvironmentName",
       "securityScan": {
         "exemptions": {
           "files": [""],
