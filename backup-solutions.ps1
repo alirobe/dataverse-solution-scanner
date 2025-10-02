@@ -2,7 +2,7 @@
 # https://gist.github.com/alirobe/17864cb8336ea9dc3d4da61fb5d6a596
 
 ### Settings ###
-$skipExisting = $true # change to $true to update
+$skipExisting = $false # change to $true to update
 $ErrorActionPreference = "Stop"
 $SolutionsRoot = ".\solutions"
 $ConfigDir = ".\config"
@@ -19,6 +19,7 @@ foreach($envObj in $environmentsConfig.environments) {
     Write-Host "Processing environment $env" -ForegroundColor Green
     $solutionsRoot = Join-Path . 'solutions' $env
     if (-not (Test-Path $solutionsRoot)) { New-Item -ItemType Directory -Path $solutionsRoot | Out-Null }
+    if (-not (Test-Path "$solutionsRoot/backups/")) { New-Item -ItemType Directory -Path "$solutionsRoot/zip" | Out-Null }
     pac env select --environment $env
     $solutionsList = pac solution list
     $solutionsList > (Join-Path $solutionsRoot "list.txt")
@@ -53,9 +54,14 @@ foreach($envObj in $environmentsConfig.environments) {
             }
         }
         Write-Host "Processing solution: $solution"
-        pac solution export --name $solution
-        Expand-Archive -Path "$solution.zip" -DestinationPath (Join-Path $solutionsRoot $solution)
-        # will be removed later
+        $zipPath = (Join-Path $solutionsRoot "backups" "$solution.zip")
+        $solutionPath = Join-Path $solutionsRoot $solution
+        pac solution export --name $solution --path $zipPath --overwrite --managed $false
+        if(test-path $solutionPath) {
+            Remove-Item $solutionPath -Recurse -Force
+            New-Item $solutionPath -ItemType "directory"
+        }
+        Expand-Archive -Path $zipPath -DestinationPath $solutionPath
         $extracted += $solution
     }
 

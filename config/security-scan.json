@@ -32,7 +32,8 @@
     "external-url": [
       "(?i)//www.w3.org",
       "(?i)//schema.management.azure.com",
-      "(?i)//schemas.microsoft.com"
+      "(?i)//schemas.microsoft.com",
+      "(?i)//microsoft.com/appmagic"
     ],
     "potential-secret": [
       "(?i)IsDataSourceSecret",
