@@ -6,12 +6,12 @@ $ConfigDir = ".\config"
 # Manage Settings
 $EnvFile = Join-Path $ConfigDir "environments.json"
 $EnvSchema = Join-Path $ConfigDir "environments.schema.json"
-Test-Json -Path $EnvFile -SchemaFile $EnvSchema -ErrorAction Stop
+Test-Json -Path $EnvFile -SchemaFile $EnvSchema -ErrorAction Stop | Out-Null
 $environmentsConfig = Get-Content -Path $EnvFile -Raw | ConvertFrom-Json 
 
 $SettingsFile = Join-Path $ConfigDir "security-scan.json"
 $settingsSchema = Join-Path $ConfigDir "security-scan.schema.json"
-Test-Json -Path $SettingsFile -SchemaFile $settingsSchema -ErrorAction Stop
+Test-Json -Path $SettingsFile -SchemaFile $settingsSchema -ErrorAction Stop | Out-Null
 $settingsConfig = Get-Content -Path $SettingsFile -Raw | ConvertFrom-Json
 
 $outDir = Join-Path (Get-Location).Path $OutputDir
@@ -31,10 +31,10 @@ foreach ($envObj in $environmentsConfig.environments) {
         
         foreach ($file in $files) {
             $content = Get-Content -Path $file.FullName -Raw -ErrorAction SilentlyContinue
-            write-host $envExemptions.files
+            # Write-Host $envExemptions.files
             foreach($exemptFile in $envExemptions.files) {
                 $fileRegex = [regex]::new($exemptFile)
-                write-host "Checking file: $($file.FullName) against pattern: $exemptFile"
+                # Write-Host "Checking file: $($file.FullName) against pattern: $exemptFile"
                 if ($fileRegex.isMatch($file.FullName)) {
                     $content = $false 
                     # Write-Host "Exempted file: $($file.FullName) by pattern $exemptFile" -ForegroundColor Yellow
@@ -87,5 +87,5 @@ foreach ($envObj in $environmentsConfig.environments) {
 
     $findings | ConvertTo-Json -Depth 5 | Out-File -FilePath $findingsJsonPath -Encoding utf8
     $findings | Select-Object ruleId, severity, file, lineNumber, match | Export-Csv -NoTypeInformation -Path $findingsCsvPath -Encoding UTF8
-    Write-Host "Security scan complete. Found $($findings.Count) total findings. Reports written to $outDir" -ForegroundColor Green
+    Write-Host "Security scan complete. $($findings.Count) findings. Reports at $OutputDir" -ForegroundColor Green
 }

@@ -23,4 +23,16 @@ Run `.\security-review.ps1` to generate a basic report.
 
 Outputs are written to `output/security-scan*` as JSON and CSV log.
 
-These **must be manually checked** for sensitive information before being sent to any AI tool, as they may contain keys/secrets.
+## Disclaimer
+
+These **must be manually checked** for sensitive information before being sent to any AI tool, as they *will* contain potential keys/secrets.
+
+This software is provided AS IS, with no implied or explicit warranties of any kind.
+
+These scans are provided for sample and demo purposes only.
+
+You are expected to write your own security scan logic, or implement your own using third party tools (such as [trufflehog](https://github.com/trufflesecurity/trufflehog), [kingfisher](https://github.com/mongodb/kingfisher), etc.) for secret scanning.
+
+Do not rely on the output of this for any security evaluation.
+
+Run at your own risk. Do not run code without understanding it first.

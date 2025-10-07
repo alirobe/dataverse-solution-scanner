@@ -18,7 +18,7 @@
     {
       "id": "external-url",
       "severity": "Medium",
-      "pattern": "(?i)https?://[^\\s\\\"']+",
+      "pattern": "(?i)(?<!xmlns=\")https?://[^\\s\\\"']+",
       "description": "Detects external URLs in code"
     },
     {
@@ -30,14 +30,20 @@
   ],
   "exemptions": {
     "external-url": [
+      "https://@{outputs",
       "(?i)//www.w3.org",
       "(?i)//schema.management.azure.com",
       "(?i)//schemas.microsoft.com",
+      "(?i)//go.microsoft.com",
       "(?i)//microsoft.com/appmagic"
     ],
     "potential-secret": [
       "(?i)IsDataSourceSecret",
       "PublicKeyToken",
+      "skipToken",
+      "TriggerWindowStartToken",
+      "TriggerWindowEndToken",
+      "TextInputCanvas_Type_",
       "(?i)X-MS-APIM-Tokens.*\\$ConnectionKey"
     ]
   }
