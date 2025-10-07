@@ -16,11 +16,12 @@ $environmentsConfig = Get-Content -Path $EnvFile -Raw | ConvertFrom-Json
 ### SCRIPT ###
 foreach($envObj in $environmentsConfig.environments) {
     $env = $envObj.name
-    Write-Host "Processing environment $env" -ForegroundColor Green
+    $envGuid = $envObj.guid
+    Write-Host "Processing environment $env ($envGuid)" -ForegroundColor Green
     $solutionsRoot = Join-Path . 'solutions' $env
     if (-not (Test-Path $solutionsRoot)) { New-Item -ItemType Directory -Path $solutionsRoot | Out-Null }
-    pac env select --environment $env
-    $solutionsList = pac solution list
+    pac env select --environment "$envGuid"
+    $solutionsList = pac solution list  --environment "$envGuid"
     $solutionsList > (Join-Path $solutionsRoot "list.txt")
     $firstLine = 5 # to be changed if output from pac tool changes
     $existing = Get-ChildItem -Path $solutionsRoot -Directory

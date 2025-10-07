@@ -12,22 +12,26 @@
             "type": "string",
             "description": "Name of the environment."
           },
+          "guid": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "description": "GUID of the environment (no braces)"
+
+          },
           "securityScan": {
             "type": "object",
             "properties": {
               "exemptions": {
                 "type": "object",
                 "properties": {
-                  
                   "files": {
                     "type": "array",
                     "description": "Files to ignore.",
                     "items": {
                       "type": "string",
                       "description": "File paths",
-                      "example": [
-                        "solutions\\YOURENVIRONMENT\\ExternalBundle"
-                      ]
+                      "example": ["solutions\\YOURENVIRONMENT\\ExternalBundle"]
                     }
                   },
                   "potential-secret": {
@@ -63,7 +67,7 @@
             "required": ["exemptions"]
           }
         },
-        "required": ["name", "securityScan"]
+        "required": ["name", "guid", "securityScan"]
       }
     }
   },
