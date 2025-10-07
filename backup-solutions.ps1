@@ -19,7 +19,6 @@ foreach($envObj in $environmentsConfig.environments) {
     Write-Host "Processing environment $env" -ForegroundColor Green
     $solutionsRoot = Join-Path . 'solutions' $env
     if (-not (Test-Path $solutionsRoot)) { New-Item -ItemType Directory -Path $solutionsRoot | Out-Null }
-    if (-not (Test-Path "$solutionsRoot/backups/")) { New-Item -ItemType Directory -Path "$solutionsRoot/zip" | Out-Null }
     pac env select --environment $env
     $solutionsList = pac solution list
     $solutionsList > (Join-Path $solutionsRoot "list.txt")
@@ -54,7 +53,7 @@ foreach($envObj in $environmentsConfig.environments) {
             }
         }
         Write-Host "Processing solution: $solution"
-        $zipPath = (Join-Path $solutionsRoot "backups" "$solution.zip")
+        $zipPath = (Join-Path $solutionsRoot "_backups" "$solution.zip")
         $solutionPath = Join-Path $solutionsRoot $solution
         pac solution export --name $solution --path $zipPath --overwrite --managed $false
         if(test-path $solutionPath) {
