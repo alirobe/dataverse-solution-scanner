@@ -1,81 +1,82 @@
-# Backup Solutions from Dataverse Environment
-# https://gist.github.com/alirobe/17864cb8336ea9dc3d4da61fb5d6a596
+#Requires -Version 7
+# Backs up every unmanaged solution in each environment listed in config/environments.json:
+# a zip per solution under _backups (ready for pac solution import), unpacked beside it a file per component,
+# and each canvas app's Power Fx source (Src/*.pa.yaml), so changes show up as readable diffs.
+[CmdletBinding()]
+param(
+    # Keep solutions that are already backed up and only fetch new ones
+    [switch]$SkipExisting,
+    # Publish all customisations first, so exports include unpublished changes. This publishes everyone's work in progress
+    [switch]$Publish,
+    [string]$Root = $PSScriptRoot
+)
+$ErrorActionPreference = 'Stop'
 
-### Settings ###
-$skipExisting = $false # change to $true to update
-$ErrorActionPreference = "Stop"
-$SolutionsRoot = ".\solutions"
-$ConfigDir = ".\config"
+$configDir = Join-Path $Root 'config'
+$envFile = Join-Path $configDir 'environments.json'
+Test-Json -Path $envFile -SchemaFile (Join-Path $configDir 'environments.schema.json') | Out-Null
+$config = Get-Content $envFile -Raw | ConvertFrom-Json
 
-# Manage Settings
-$EnvFile = Join-Path $ConfigDir "environments.json"
-$EnvSchema = Join-Path $ConfigDir "environments.schema.json"
-Test-Json -Path $EnvFile -SchemaFile $EnvSchema -ErrorAction Stop
-$environmentsConfig = Get-Content -Path $EnvFile -Raw | ConvertFrom-Json 
+# solution list --json arrived in Power Platform CLI 2
+$pacMajor = [int]((pac | Select-String 'Version: (\d+)').Matches[0].Groups[1].Value)
+if ($pacMajor -lt 2) { throw "Power Platform CLI 2 or later is needed (this is $pacMajor). Update it with: pac install latest" }
 
-### SCRIPT ###
-foreach($envObj in $environmentsConfig.environments) {
-    $env = $envObj.name
-    $envGuid = $envObj.guid
-    Write-Host "Processing environment $env ($envGuid)" -ForegroundColor Green
-    $solutionsRoot = Join-Path . 'solutions' $env
-    if (-not (Test-Path $solutionsRoot)) { New-Item -ItemType Directory -Path $solutionsRoot | Out-Null }
-    pac env select --environment "$envGuid"
-    $solutionsList = pac solution list  --environment "$envGuid"
-    $solutionsList > (Join-Path $solutionsRoot "list.txt")
-    $firstLine = 5 # to be changed if output from pac tool changes
-    $existing = Get-ChildItem -Path $solutionsRoot -Directory
-    $extracted = @()
+function Invoke-Pac {
+    $output = pac @args
+    if ($LASTEXITCODE) { throw "pac $($args[0..1] -join ' ') failed:`n$($output -join "`n")" }
+    $output
+}
 
-    if ($solutionsList.Count -lt 5 -or -not $solutionsList[4].StartsWith("Unique Name")) {
-        Write-Host "Unexpected output format. Ensure you are connected to the correct Dataverse organization and the solutions list is formatted correctly."
+# Each canvas app's Power Fx source, the part of a .msapp that belongs in source control
+function Expand-CanvasSource([IO.FileInfo]$App) {
+    $target = Join-Path $App.DirectoryName "$($App.BaseName)_src"
+    $archive = [IO.Compression.ZipFile]::OpenRead($App.FullName)
+    try {
+        $sources = $archive.Entries | Where-Object { $_.FullName -match '^Src[\\/].+\.pa\.yaml$' }
+        if (-not $sources) { Write-Warning "No Src/*.pa.yaml in $($App.Name)"; return }
+        foreach ($entry in $sources) {
+            $path = Join-Path $target ($entry.FullName -replace '\\', '/')
+            New-Item -ItemType Directory -Force (Split-Path $path) | Out-Null
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $path, $true)
+        }
+    } finally { $archive.Dispose() }
+}
+
+foreach ($environment in $config.environments) {
+    $name = $environment.name
+    $guid = $environment.guid
+    Write-Host "Environment $name ($guid)" -ForegroundColor Green
+    $folder = Join-Path $Root 'solutions' $name
+    $backups = Join-Path $folder '_backups'
+    New-Item -ItemType Directory -Force $backups | Out-Null
+
+    if ($Publish) {
+        Write-Host 'Publishing all customisations'
+        Invoke-Pac solution publish --environment $guid | Out-Null
     }
 
-    foreach ($line in $solutionsList[$firstLine..999]) {
-        $solution = $line -split ' ' | Select-Object -First 1
-        if ($null -eq $solution -or $solution.Trim() -eq "") {
-            continue # ignore blank lines 
-        }
-        if($line.Trim().EndsWith("True") -or $solution -eq "Default") {
-            Write-Host "Skipping managed or default solution: $solution"
-            continue
-        }
-        if($false -eq $line.Trim().EndsWith("False")) {
-            Write-Host "Skipping invalid solution definition in line: $line"
-            continue
-        }
-        if($existing.Name -contains $solution) {
-            if($skipExisting) {
-                Write-Host "Skipping existing solution: $solution (turn off skipExisting to update)"
-                continue
-            } else {
-                Write-Host "Removing existing solution for update: $solution"
-                Remove-Item -Path (Join-Path $solutionsRoot $solution) -Recurse -Force -ErrorAction SilentlyContinue
-            }
-        }
-        Write-Host "Processing solution: $solution"
-        $zipPath = (Join-Path $solutionsRoot "_backups" "$solution.zip")
-        $solutionPath = Join-Path $solutionsRoot $solution
-        pac solution export --name $solution --path $zipPath --overwrite --managed $false
-        if(test-path $solutionPath) {
-            Remove-Item $solutionPath -Recurse -Force
-            New-Item $solutionPath -ItemType "directory"
-        }
-        Expand-Archive -Path $zipPath -DestinationPath $solutionPath
-        $extracted += $solution
-    }
+    $list = (Invoke-Pac solution list --environment $guid --json) -join "`n"
+    $solutions = $list.Substring($list.IndexOf('[')) | ConvertFrom-Json
+    $solutions | ConvertTo-Json | Set-Content (Join-Path $folder 'solutions.json')
 
-    foreach ($solutionName in $extracted) {
-        Write-Host "Processing solution: $solutionName"
-        $appPackages = Get-ChildItem -Path (Join-Path $solutionsRoot $solutionName) -Recurse -File -Filter "*.msapp"
-        foreach($appPackage in $appPackages) {
-            Write-Host "Extracting app package: $($appPackage.FullName)"
-            $zipPath = Join-Path $appPackage.Directory "$($appPackage.BaseName).zip"
-            Copy-Item -Path $appPackage.FullName -Destination $zipPath -Force
-            Expand-Archive -Path $zipPath -DestinationPath (Join-Path $solutionsRoot $solutionName $appPackage.BaseName)
-            Remove-Item -Path $zipPath -Force
+    # Managed solutions belong to someone else's source, and Default can't be exported
+    foreach ($solution in $solutions | Where-Object { -not $_.IsManaged -and $_.SolutionUniqueName -ne 'Default' }) {
+        $unique = $solution.SolutionUniqueName
+        $unpacked = Join-Path $folder $unique
+        if ($SkipExisting -and (Test-Path $unpacked)) {
+            Write-Host "Skipping $unique (already backed up)"
+            continue
         }
-        Start-Sleep -Seconds 2 # expansion can sometimes exit prematurely
-        
+        Write-Host "Exporting $unique $($solution.VersionNumber)"
+        $zip = Join-Path $backups "$unique.zip"
+        try {
+            Invoke-Pac solution export --environment $guid --name $unique --path $zip --overwrite | Out-Null
+        } catch {
+            Write-Warning $_
+            continue
+        }
+        if (Test-Path $unpacked) { Remove-Item $unpacked -Recurse -Force }
+        Invoke-Pac solution unpack --zipfile $zip --folder $unpacked --packagetype Unmanaged --allowWrite | Out-Null
+        Get-ChildItem $unpacked -Recurse -File -Filter *.msapp | ForEach-Object { Expand-CanvasSource $_ }
     }
 }
